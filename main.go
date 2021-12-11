@@ -21,18 +21,6 @@ func handlePath(path string) (string, error) {
 	return homedir.Expand(path)
 }
 
-func readConfigFile(path string) (bytes []byte, err error) {
-	if path == "" {
-		path, err = homedir.Expand(defaultConfigPath)
-	} else {
-		path, err = homedir.Expand(path)
-	}
-	if err != nil {
-		return nil, err
-	}
-	return ioutil.ReadFile(path)
-}
-
 func format(bytes []byte, tabs bool, indent int) (result []byte, err error) {
 	var m map[string]interface{}
 	err = json.Unmarshal(bytes, &m)
@@ -49,18 +37,6 @@ func format(bytes []byte, tabs bool, indent int) (result []byte, err error) {
 	return json.MarshalIndent(m, "", sb.String())
 }
 
-func writeBack(path string, formattedText []byte) (err error) {
-	if path == "" {
-		path, err = homedir.Expand(defaultConfigPath)
-	} else {
-		path, err = homedir.Expand(path)
-	}
-	if err != nil {
-		return
-	}
-	return ioutil.WriteFile(path, formattedText, 0777)
-}
-
 func main() {
 	var (
 		path   = flag.String("p", defaultConfigPath, "")
@@ -75,7 +51,7 @@ func main() {
 		color.Red("[error] error handle path: %v\n", err)
 		return
 	}
-	bytes, err = readConfigFile(*path)
+	bytes, err = ioutil.ReadFile(*path)
 	if err != nil {
 		color.Red("[error] error read configuration: %v\n", err)
 		return
@@ -85,7 +61,7 @@ func main() {
 		color.Red("[error] error format configuration: %v\n", err)
 		return
 	}
-	err = writeBack(*path, bytes)
+	err = ioutil.WriteFile(*path, bytes, 0777)
 	if err != nil {
 		color.Red("[error] error write configuration: %v\n", err)
 		return
